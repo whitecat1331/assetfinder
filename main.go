@@ -1,9 +1,8 @@
-package main
+package assetfinder
 
 import (
 	"bufio"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,15 +13,11 @@ import (
 	"time"
 )
 
-func main() {
-	var subsOnly bool
-	flag.BoolVar(&subsOnly, "subs-only", false, "Only include subdomains of search domain")
-	flag.Parse()
+func AssetFinder(subsOnly bool, domain string) {
 
 	var domains io.Reader
 	domains = os.Stdin
 
-	domain := flag.Arg(0)
 	if domain != "" {
 		domains = strings.NewReader(domain)
 	}
