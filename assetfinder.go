@@ -28,7 +28,7 @@ func AssetFinder(subsOnly bool, domain string) {
 		fetchThreatCrowd,
 		fetchCrtSh,
 		fetchFacebook,
-		//fetchWayback, // A little too slow :(
+		fetchWayback, // A little too slow :( // So?
 		fetchVirusTotal,
 		fetchFindSubDomains,
 		fetchUrlscan,
