@@ -5,15 +5,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
 )
 
-func AssetFinder(subsOnly bool, domain string) {
+// ChanToSlice reads all data from ch (which must be a chan), returning a
+// slice of the data. If ch is a 'T chan' then the return value is of type
+// []T inside the returned interface.
+// A typical call would be sl := ChanToSlice(ch).([]int)
+func ChanToSlice(ch interface{}) interface{} {
+	chv := reflect.ValueOf(ch)
+	slv := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(ch).Elem()), 0, 0)
+	for {
+		v, ok := chv.Recv()
+		if !ok {
+			return slv.Interface()
+		}
+		slv = reflect.Append(slv, v)
+	}
+}
+
+func removeDuplicate[T comparable](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func AssetFinder(subsOnly bool, domain string) []string {
 
 	var domains io.Reader
 	domains = os.Stdin
@@ -77,17 +105,7 @@ func AssetFinder(subsOnly bool, domain string) {
 		close(out)
 	}()
 
-	// track what we've already printed to avoid duplicates
-	printed := make(map[string]bool)
-
-	for n := range out {
-		if _, ok := printed[n]; ok {
-			continue
-		}
-		printed[n] = true
-
-		fmt.Println(n)
-	}
+	return removeDuplicate(ChanToSlice(out).([]string))
 }
 
 type fetchFn func(string) ([]string, error)
@@ -98,7 +116,7 @@ func httpGet(url string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	raw, err := ioutil.ReadAll(res.Body)
+	raw, err := io.ReadAll(res.Body)
 
 	res.Body.Close()
 	if err != nil {
