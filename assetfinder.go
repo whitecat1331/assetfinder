@@ -41,7 +41,7 @@ func removeDuplicate[T comparable](sliceList []T) []T {
 	return list
 }
 
-func AssetFinder(subsOnly bool, domain string) []string {
+func AssetFinder(domain string, subsOnly bool) []string {
 
 	var domains io.Reader
 	domains = os.Stdin
