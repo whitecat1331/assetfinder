@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -43,12 +42,7 @@ func removeDuplicate[T comparable](sliceList []T) []T {
 
 func AssetFinder(domain string, subsOnly bool) []string {
 
-	var domains io.Reader
-	domains = os.Stdin
-
-	if domain != "" {
-		domains = strings.NewReader(domain)
-	}
+	domains := strings.NewReader(domain)
 
 	sources := []fetchFn{
 		fetchCertSpotter,
