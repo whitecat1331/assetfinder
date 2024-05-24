@@ -16,3 +16,4 @@ assetfinder
 go.work
 
 *test*
+.env
