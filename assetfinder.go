@@ -40,7 +40,7 @@ func removeDuplicate[T comparable](sliceList []T) []T {
 	return list
 }
 
-func AssetFinder(domain string, subsOnly bool) []string {
+func AssetFinder(assets chan<- string, domain string, subsOnly bool) {
 
 	domains := strings.NewReader(domain)
 
@@ -50,14 +50,13 @@ func AssetFinder(domain string, subsOnly bool) []string {
 		fetchThreatCrowd,
 		fetchCrtSh,
 		fetchFacebook,
-		fetchWayback, // A little too slow :( // So?
+		// fetchWayback, // A little too slow :(
 		fetchVirusTotal,
 		fetchFindSubDomains,
 		fetchUrlscan,
 		fetchBufferOverrun,
 	}
 
-	out := make(chan string)
 	var wg sync.WaitGroup
 
 	sc := bufio.NewScanner(domains)
@@ -87,7 +86,7 @@ func AssetFinder(domain string, subsOnly bool) []string {
 					if subsOnly && !strings.HasSuffix(n, domain) {
 						continue
 					}
-					out <- n
+					assets <- n
 				}
 			}()
 		}
@@ -96,10 +95,8 @@ func AssetFinder(domain string, subsOnly bool) []string {
 	// close the output channel when all the workers are done
 	go func() {
 		wg.Wait()
-		close(out)
+		close(assets)
 	}()
-
-	return removeDuplicate(ChanToSlice(out).([]string))
 }
 
 type fetchFn func(string) ([]string, error)
