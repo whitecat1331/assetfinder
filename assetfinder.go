@@ -6,29 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
 )
 
-// ChanToSlice reads all data from ch (which must be a chan), returning a
-// slice of the data. If ch is a 'T chan' then the return value is of type
-// []T inside the returned interface.
-// A typical call would be sl := ChanToSlice(ch).([]int)
-func ChanToSlice(ch interface{}) interface{} {
-	chv := reflect.ValueOf(ch)
-	slv := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(ch).Elem()), 0, 0)
-	for {
-		v, ok := chv.Recv()
-		if !ok {
-			return slv.Interface()
-		}
-		slv = reflect.Append(slv, v)
-	}
-}
-
-func removeDuplicate[T comparable](sliceList []T) []T {
+func removeDuplicates[T comparable](sliceList []T) []T {
 	allKeys := make(map[T]bool)
 	list := []T{}
 	for _, item := range sliceList {
@@ -40,7 +23,34 @@ func removeDuplicate[T comparable](sliceList []T) []T {
 	return list
 }
 
-func AssetFinder(assets chan<- string, domain string, subsOnly bool) {
+func AssetFinder(domains []string, subsOnly bool) []string {
+	var assetsFound []string
+	allAssets := make(chan string)
+	wgPool := new(sync.WaitGroup)
+
+	for _, domain := range domains {
+		wgPool.Add(1)
+		go assetFinder(allAssets, wgPool, domain, subsOnly)
+	}
+
+	go func() {
+		wgPool.Wait()
+		close(allAssets)
+	}()
+
+	for asset := range allAssets {
+		assetsFound = append(assetsFound, asset)
+	}
+
+	return removeDuplicates(assetsFound)
+
+}
+
+// use go keyword with this function
+func assetFinder(allAssets chan<- string, wgPool *sync.WaitGroup, domain string, subsOnly bool) {
+	defer wgPool.Done()
+
+	assets := make(chan string)
 
 	domains := strings.NewReader(domain)
 
@@ -97,6 +107,11 @@ func AssetFinder(assets chan<- string, domain string, subsOnly bool) {
 		wg.Wait()
 		close(assets)
 	}()
+
+	for asset := range assets {
+		allAssets <- asset
+	}
+
 }
 
 type fetchFn func(string) ([]string, error)
