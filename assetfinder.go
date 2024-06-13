@@ -6,10 +6,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/whitecat1331/godevsuite"
 )
+
+const LOGPATH = "logs/assetfinder.log"
 
 func removeDuplicates[T comparable](sliceList []T) []T {
 	allKeys := make(map[T]bool)
@@ -23,14 +28,23 @@ func removeDuplicates[T comparable](sliceList []T) []T {
 	return list
 }
 
-func AssetFinder(domains []string, subsOnly bool) []string {
+func AssetFinder(domains []string, subsOnly bool, logPath string) ([]string, error) {
+	if logPath == "" {
+		logPath = LOGPATH
+	}
 	var assetsFound []string
 	allAssets := make(chan string)
 	wgPool := new(sync.WaitGroup)
+	slogger, f, err := godevsuite.SetupSLogger(logPath)
+	if err != nil {
+		fmt.Printf("Logger not setup\n%s\n%#T", err.Error(), err)
+		return nil, err
+	}
+	defer f.Close()
 
 	for _, domain := range domains {
 		wgPool.Add(1)
-		go assetFinder(allAssets, wgPool, domain, subsOnly)
+		go assetFinder(allAssets, wgPool, domain, subsOnly, slogger)
 	}
 
 	go func() {
@@ -42,12 +56,13 @@ func AssetFinder(domains []string, subsOnly bool) []string {
 		assetsFound = append(assetsFound, asset)
 	}
 
-	return removeDuplicates(assetsFound)
+	return removeDuplicates(assetsFound), nil
 
 }
 
 // use go keyword with this function
-func assetFinder(allAssets chan<- string, wgPool *sync.WaitGroup, domain string, subsOnly bool) {
+func assetFinder(allAssets chan<- string, wgPool *sync.WaitGroup,
+	domain string, subsOnly bool, slogger *godevsuite.SLogger) {
 	defer wgPool.Done()
 
 	assets := make(chan string)

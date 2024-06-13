@@ -1,2 +1,6 @@
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/whitecat1331/godevsuite v0.0.0-20240613171134-c7f0cf42cc59 h1:XmUCwH3R1fdAh9bj7HR7/ULHzmcEN/ikbtJ1yhoENZ8=
+github.com/whitecat1331/godevsuite v0.0.0-20240613171134-c7f0cf42cc59/go.mod h1:QzEo6DYUs4O6praVBn06AnvnKfQv7SH1SwZTqXYW7TA=
+github.com/whitecat1331/godevsuite v0.0.0-20240613190705-05fc373e0fbe h1:iuTudOYZUzIUlgRBlaVkQqCmyIiy/Jgt1VnbxhKdkcA=
+github.com/whitecat1331/godevsuite v0.0.0-20240613190705-05fc373e0fbe/go.mod h1:QzEo6DYUs4O6praVBn06AnvnKfQv7SH1SwZTqXYW7TA=
