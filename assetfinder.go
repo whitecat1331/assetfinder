@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -15,18 +14,6 @@ import (
 )
 
 const LOGPATH = "logs/assetfinder.log"
-
-func removeDuplicates[T comparable](sliceList []T) []T {
-	allKeys := make(map[T]bool)
-	list := []T{}
-	for _, item := range sliceList {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
-			list = append(list, item)
-		}
-	}
-	return list
-}
 
 func AssetFinder(domains []string, subsOnly bool, logPath string) ([]string, error) {
 	if logPath == "" {
@@ -56,7 +43,7 @@ func AssetFinder(domains []string, subsOnly bool, logPath string) ([]string, err
 		assetsFound = append(assetsFound, asset)
 	}
 
-	return removeDuplicates(assetsFound), nil
+	return godevsuite.RemoveDuplicates(assetsFound), nil
 
 }
 
@@ -102,7 +89,7 @@ func assetFinder(allAssets chan<- string, wgPool *sync.WaitGroup,
 				names, err := fn(domain)
 
 				if err != nil {
-					//fmt.Fprintf(os.Stderr, "err: %s\n", err)
+					slogger.Error(fmt.Sprintf("err: %s\n", err))
 					return
 				}
 
